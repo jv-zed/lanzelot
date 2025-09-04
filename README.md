@@ -1,8 +1,9 @@
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LNZT (Lanzelot) Cipher — Web Demo (Passphrase-only)</title>
+  <title>LNZT (Lanzelot) Cipher — Web Demo (Passphrase-only, 1→!)</title>
   <style>
     :root{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;--card:#fff;--bg:#f3f6fb}
     body{margin:0;background:var(--bg);padding:28px}
@@ -26,12 +27,12 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>LNZT (Lanzelot) Cipher — HTML + JS demo (passphrase-only)</h1>
+      <h1>LNZT (Lanzelot) Cipher — Web Demo (passphrase-only)</h1>
       <div class="muted">(A multi-layer experimental cipher — for learning/demo)</div>
     </header>
 
     <section class="card">
-      <label>Plaintext (letters & numbers only will be used)</label>
+      <label>Plaintext (letters & numbers only will be used; all "1" are shown as "!")</label>
       <textarea id="plaintext" rows="4" placeholder="Type message, e.g. HELLO123">HELLO123</textarea>
 
       <div style="height:12px"></div>
@@ -55,7 +56,7 @@
 
       <div style="height:12px"></div>
       <div>
-        <label>Ciphertext</label>
+        <label>Ciphertext (all "1" displayed as "!")</label>
         <div id="ciphertext" class="output"></div>
       </div>
 
@@ -65,19 +66,21 @@
         <button id="copyPlain" class="ghost">Copy plaintext</button>
         <button id="download" class="ghost">Download .html (this page)</button>
         <div style="flex:1"></div>
-        <div class="muted">Tip: this demo now removes the per-message nonce — only passphrase+salt determine the ciphertext (deterministic).</div>
+        <div class="muted">Tip: this demo displays "!" instead of "1". Decrypt accepts either "1" or "!" in the ciphertext input.</div>
       </div>
     </section>
 
     <section class="card">
       <h3 style="margin-top:0">About this demo</h3>
-      <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt (no per-message nonce).</p>
+      <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt (no per-message nonce). All displayed output replaces the character "1" with "!"; when decrypting the page will accept either "1" or "!" as input.</p>
       <div class="footer">⚠️ Not audited for production use. Removing the nonce reduces semantic security — identical messages encrypted with the same passphrase/salt will produce identical ciphertexts. Use only for learning and experimentation.</div>
     </section>
   </div>
 
 <script>
 // LNZT cipher — JavaScript/Browser port (nonce removed; deterministic by passphrase+salt)
+// UI: replaces displayed '1' with '!'; decrypt accepts both '1' and '!'
+
 // Alphabet A-Z then 0-9
 const ALPHABET = Array.from({length:26}, (_,i)=>String.fromCharCode(65+i)).concat(Array.from({length:10},(_,i)=>String(i)));
 const M = ALPHABET.length; // 36
@@ -135,6 +138,14 @@ async function deriveKeystream(passphrase, nonce, length) {
 function indexOfSym(ch) { return ALPHABET.indexOf(ch); }
 function symOf(idx) { return ALPHABET[idx % M]; }
 
+function displayReplaceOnes(s) {
+  return s.replace(/1/g, '!');
+}
+function inputReplaceBang(s) {
+  // accepts ! as 1 for decryption input
+  return s.replace(/!/g, '1');
+}
+
 async function encryptLNZT(plaintext, passphrase, salt='') {
   let message = (plaintext || '') .toUpperCase().replace(/[^A-Z0-9]/g,'');
   const nonceHex = ''; // nonce removed — deterministic output based only on passphrase+salt
@@ -182,7 +193,10 @@ async function encryptLNZT(plaintext, passphrase, salt='') {
 }
 
 async function decryptLNZT(ciphertext, passphrase, salt) {
-  let message = (ciphertext || '').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  let messageRaw = (ciphertext || '').toUpperCase();
+  // accept '!' as '1'
+  messageRaw = inputReplaceBang(messageRaw);
+  let message = messageRaw.replace(/[^A-Z0-9]/g,'');
   const nonceHex = '';
   const indices = Array.from(message).map(ch=>indexOfSym(ch));
   const baseSeed = await deriveSeedBytes(passphrase, salt);
@@ -241,19 +255,24 @@ $('encrypt').addEventListener('click', async ()=>{
   const salt = $('salt').value || '';
   try {
     const {ciphertext} = await encryptLNZT(pt, pw, salt);
-    $('ciphertext').textContent = ciphertext;
+    // display with 1 -> !
+    $('ciphertext').textContent = displayReplaceOnes(ciphertext);
+    // also show plaintext area with replaced ones for visual consistency
+    $('plaintext').value = displayReplaceOnes(pt);
   } catch (err) {
     $('ciphertext').textContent = 'Error: '+err.message;
   }
 });
 
 $('decrypt').addEventListener('click', async ()=>{
-  const ct = $('ciphertext').textContent || '';
+  const rawCt = $('ciphertext').textContent || '';
+  const ctForInput = inputReplaceBang(rawCt); // convert ! -> 1 for processing
   const pw = $('passphrase').value;
   const salt = $('salt').value || '';
   try {
-    const pt = await decryptLNZT(ct, pw, salt);
-    $('plaintext').value = pt;
+    const pt = await decryptLNZT(ctForInput, pw, salt);
+    // display plaintext with 1 -> ! for UI
+    $('plaintext').value = displayReplaceOnes(pt);
   } catch (err) {
     alert('Decryption error: '+err.message);
   }
@@ -269,7 +288,7 @@ $('copyPlain').addEventListener('click', ()=>{
 $('download').addEventListener('click', ()=>{
   const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'lnzt_cipher_demo_passphrase_only.html'; a.click(); URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = url; a.download = 'lnzt_cipher_demo_passphrase_only_1to!.html'; a.click(); URL.revokeObjectURL(url);
 });
 
 </script>
