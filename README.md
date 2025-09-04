@@ -1,9 +1,8 @@
-<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LNZT (Lanzelot) Cipher — Web Demo</title>
+  <title>LNZT (Lanzelot) Cipher — Web Demo (Passphrase-only)</title>
   <style>
     :root{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;--card:#fff;--bg:#f3f6fb}
     body{margin:0;background:var(--bg);padding:28px}
@@ -27,7 +26,7 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>LNZT (Lanzelot) Cipher — HTML + JS demo</h1>
+      <h1>LNZT (Lanzelot) Cipher — HTML + JS demo (passphrase-only)</h1>
       <div class="muted">(A multi-layer experimental cipher — for learning/demo)</div>
     </header>
 
@@ -49,14 +48,9 @@
 
       <div style="height:12px"></div>
       <div class="row">
-        <button id="genNonce">Generate nonce</button>
         <button id="encrypt">Encrypt</button>
         <button id="decrypt" class="ghost">Decrypt</button>
         <div style="flex:1"></div>
-        <div style="min-width:240px">
-          <label>Nonce (hex)</label>
-          <input id="nonce" type="text" placeholder="nonce (hex)" />
-        </div>
       </div>
 
       <div style="height:12px"></div>
@@ -71,19 +65,19 @@
         <button id="copyPlain" class="ghost">Copy plaintext</button>
         <button id="download" class="ghost">Download .html (this page)</button>
         <div style="flex:1"></div>
-        <div class="muted">Tip: the same passphrase+salt+nonce must be used for decrypt.</div>
+        <div class="muted">Tip: this demo now removes the per-message nonce — only passphrase+salt determine the ciphertext (deterministic).</div>
       </div>
     </section>
 
     <section class="card">
       <h3 style="margin-top:0">About this demo</h3>
-      <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt/nonce.</p>
-      <div class="footer">⚠️ Not audited for production use. Use only for learning and experimentation.</div>
+      <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt (no per-message nonce).</p>
+      <div class="footer">⚠️ Not audited for production use. Removing the nonce reduces semantic security — identical messages encrypted with the same passphrase/salt will produce identical ciphertexts. Use only for learning and experimentation.</div>
     </section>
   </div>
 
 <script>
-// LNZT cipher — JavaScript/Browser port
+// LNZT cipher — JavaScript/Browser port (nonce removed; deterministic by passphrase+salt)
 // Alphabet A-Z then 0-9
 const ALPHABET = Array.from({length:26}, (_,i)=>String.fromCharCode(65+i)).concat(Array.from({length:10},(_,i)=>String(i)));
 const M = ALPHABET.length; // 36
@@ -92,7 +86,6 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 async function sha256Bytes(input) {
-  // input: string or Uint8Array
   const data = (typeof input === 'string') ? enc.encode(input) : input;
   const buf = await crypto.subtle.digest('SHA-256', data);
   return new Uint8Array(buf);
@@ -102,19 +95,11 @@ function toHex(bytes) {
   return Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-function hexToBytes(hex) {
-  if (!hex) return new Uint8Array();
-  const out = new Uint8Array(hex.length/2);
-  for (let i=0;i<out.length;i++) out[i]=parseInt(hex.substr(i*2,2),16);
-  return out;
-}
-
 async function deriveSeedBytes(passphrase, salt) {
   return await sha256Bytes(passphrase + '::' + (salt||""));
 }
 
 async function seededShuffle(items, seedBytes) {
-  // Fisher-Yates using deterministic SHA256 churn
   const out = items.slice();
   let idx = 0;
   for (let i = out.length - 1; i > 0; --i) {
@@ -122,7 +107,6 @@ async function seededShuffle(items, seedBytes) {
     payload.set(seedBytes, 0);
     payload[seedBytes.length] = idx & 0xFF;
     const chunk = await sha256Bytes(payload);
-    // use first 8 bytes as big integer
     let val = 0n;
     for (let k=0;k<8 && k<chunk.length;k++) {
       val = (val << 8n) + BigInt(chunk[k]);
@@ -151,14 +135,9 @@ async function deriveKeystream(passphrase, nonce, length) {
 function indexOfSym(ch) { return ALPHABET.indexOf(ch); }
 function symOf(idx) { return ALPHABET[idx % M]; }
 
-async function encryptLNZT(plaintext, passphrase, salt='', nonceHex=null) {
-  // normalize
+async function encryptLNZT(plaintext, passphrase, salt='') {
   let message = (plaintext || '') .toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if (!nonceHex) {
-    const r = new Uint8Array(8);
-    crypto.getRandomValues(r);
-    nonceHex = toHex(r);
-  }
+  const nonceHex = ''; // nonce removed — deterministic output based only on passphrase+salt
   const baseSeed = await deriveSeedBytes(passphrase, salt);
   const basePerm = await seededShuffle([...Array(M).keys()], baseSeed);
   const substituteMap = Array.from({length:M}, (_,i)=>basePerm[i]);
@@ -199,11 +178,12 @@ async function encryptLNZT(plaintext, passphrase, salt='', nonceHex=null) {
     prev = final[i];
   }
   const ciphertext = final.map(symOf).join('');
-  return {ciphertext, nonce: nonceHex};
+  return {ciphertext};
 }
 
-async function decryptLNZT(ciphertext, passphrase, salt, nonceHex) {
+async function decryptLNZT(ciphertext, passphrase, salt) {
   let message = (ciphertext || '').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const nonceHex = '';
   const indices = Array.from(message).map(ch=>indexOfSym(ch));
   const baseSeed = await deriveSeedBytes(passphrase, salt);
   // reverse CBC-like diffusion
@@ -213,13 +193,13 @@ async function decryptLNZT(ciphertext, passphrase, salt, nonceHex) {
     const c = recovered[i];
     const orig = (c - prev + M) % M;
     recovered[i] = orig;
-    prev = c; // IMPORTANT: prev becomes cipher value as in encryption reverse
+    prev = c;
   }
   // reverse block transposition
   const blockSize = (baseSeed[0] % 5) + 4;
   let outIndices = [];
   for (let bstart=0;bstart<recovered.length;bstart+=blockSize) {
-    const block = recovered.slice(bstart, Math.min(recovered.length, bstart+blockSize));
+    const block = recovered.slice(bstart, Math.min(recovered.length,bstart+blockSize));
     const L = block.length;
     const permSeed = await deriveSeedBytes(passphrase, salt + '::perm::L' + L);
     const perm = await seededShuffle([...Array(L).keys()], permSeed);
@@ -254,32 +234,25 @@ async function decryptLNZT(ciphertext, passphrase, salt, nonceHex) {
 
 // UI wiring
 const $ = id => document.getElementById(id);
-$('genNonce').addEventListener('click', ()=>{
-  const r = new Uint8Array(8); crypto.getRandomValues(r); $('nonce').value = toHex(r);
-});
 
 $('encrypt').addEventListener('click', async ()=>{
   const pt = $('plaintext').value;
   const pw = $('passphrase').value;
   const salt = $('salt').value || '';
-  let nonce = $('nonce').value || null;
   try {
-    const {ciphertext, nonce: used} = await encryptLNZT(pt, pw, salt, nonce);
+    const {ciphertext} = await encryptLNZT(pt, pw, salt);
     $('ciphertext').textContent = ciphertext;
-    $('nonce').value = used;
   } catch (err) {
     $('ciphertext').textContent = 'Error: '+err.message;
   }
 });
 
 $('decrypt').addEventListener('click', async ()=>{
-  const ct = $('ciphertext').textContent || $('plaintext').value;
+  const ct = $('ciphertext').textContent || '';
   const pw = $('passphrase').value;
   const salt = $('salt').value || '';
-  const nonce = $('nonce').value || '';
   try {
-    const pt = await decryptLNZT(ct, pw, salt, nonce);
-    // show result into plaintext area for convenience
+    const pt = await decryptLNZT(ct, pw, salt);
     $('plaintext').value = pt;
   } catch (err) {
     alert('Decryption error: '+err.message);
@@ -296,7 +269,7 @@ $('copyPlain').addEventListener('click', ()=>{
 $('download').addEventListener('click', ()=>{
   const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'lnzt_cipher_demo.html'; a.click(); URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = url; a.download = 'lnzt_cipher_demo_passphrase_only.html'; a.click(); URL.revokeObjectURL(url);
 });
 
 </script>
