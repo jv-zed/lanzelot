@@ -1,309 +1,304 @@
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>JSON Rarity Editor</title>
+  <title>LNZT (Lanzelot) Cipher — Web Demo</title>
   <style>
-    :root{--bg:#f7fafc;--card:#ffffff;--muted:#6b7280;--accent:#4f46e5;--surface:#ffffff;--text:#0f172a;--border:#e6edf3;--accent:#4f46e5;--accent-strong:#3730a3;--danger:#ff7777;--shadow:0 1px 2px rgba(2,6,23,0.04);}
-    html[data-theme="dark"] {--bg: #0b1220;--surface: #0f1724;--card: #111827;--text: #e6eef6;--muted: #9aa6b2;--border: #1f2937;--accent: #82a3ff;--accent-strong: #4f6ef6;--danger: #4b1f1f;--shadow: 0 2px 8px rgba(2,6,23,0.6);}
-    html[data-theme="contrast"] {--bg: #0b1220;--surface: #0f1724;--card: #111827;--text: #fffb00;--muted: #b0b29a;--border: #ff16d8;--accent: #48ff00;--accent-strong: #ff0062;--danger: #ff0000;--shadow: 0 2px 8px rgba(2,6,23,0.6);}
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
-    body{background:var(--bg);color:var(--text)}
-    .container{max-width:1200px;margin:24px auto;padding:18px}
-    .header{display:flex;gap:12px;align-items:center;justify-content:space-between}
-    .btn{display:inline-block;background:var(--card);border:1px solid var(--border);padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--text);}
-    .primary{background:var(--accent);color:var(--border);border:none}
-    .grid{display:grid;grid-template-columns:220px 420px 1fr;gap:16px;margin-top:16px}
-    .card{background:var(--card);padding:12px;border-radius:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
-    h1{font-size:18px;margin:0}
-    h2{font-size:14px;margin:0 0 8px 0}
-    .rarity-btn{display:block;width:100%;text-align:left;padding:8px;border-radius:8px;border:none;background:transparent;cursor:pointer;color: var(--text);}
-    .rarity-btn.active{background:var(--card);border-left:4px solid var(--accent)}
-    .items-list{max-height:70vh;overflow:auto}
-    .item-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:6px}
-    .item-row:hover{background:var(--bg)}
-    input[type="text"],input[type="number"],textarea,select{width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background: var(--bg);color: var(--text);}
-    .small{font-size:13px;color:var(--muted)}
-    pre{white-space:pre-wrap;background:var(--surface);padding:10px;border-radius:8px;max-height:300px;overflow:auto;scrollbar-color: var(--surface) var(--bg);scrollbar-arrow-color: var(--surface);}
-    .flex{display:flex;gap:8px;align-items:center}
-    .col{display:flex;flex-direction:column;gap:8px}
-    .muted{color:var(--muted)}
-    .danger{background:var(--danger);border-color:var(--danger)}
-    .controls{display:flex;gap:8px;align-items:center}
-    .sample-area{margin-top:8px}
-    label.file-label{cursor:pointer}
-    .inline{display:inline-block}
-    #filename{cursor: text;}
+    :root{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;--card:#fff;--bg:#f3f6fb}
+    body{margin:0;background:var(--bg);padding:28px}
+    .wrap{max-width:980px;margin:0 auto}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(20,30,60,0.06);margin-bottom:14px}
+    label{display:block;font-size:13px;color:#333;margin-bottom:6px}
+    textarea,input[type=text],input[type=password]{width:100%;padding:10px;border-radius:8px;border:1px solid #d6dbe6;font-size:14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    button{background:#0b63ff;color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.ghost{background:#f4f6fb;color:#0b63ff;border:1px solid #d6e0ff}
+    .row{display:flex;gap:8px;align-items:center}
+    small{color:#556}
+    .output{font-family:monospace;padding:10px;border-radius:8px;border:1px dashed #d6dbe6;background:#fcfdff}
+    .footer{font-size:13px;color:#445;margin-top:6px}
+    .muted{color:#6b7280}
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
+  <div class="wrap">
+    <header>
+      <h1>LNZT (Lanzelot) Cipher — HTML + JS demo</h1>
+      <div class="muted">(A multi-layer experimental cipher — for learning/demo)</div>
+    </header>
+
+    <section class="card">
+      <label>Plaintext (letters & numbers only will be used)</label>
+      <textarea id="plaintext" rows="4" placeholder="Type message, e.g. HELLO123">HELLO123</textarea>
+
+      <div style="height:12px"></div>
+      <div class="grid">
+        <div>
+          <label>Passphrase</label>
+          <input id="passphrase" type="password" placeholder="Secret passphrase" value="Lanzelot42" />
+        </div>
+        <div>
+          <label>Salt (optional)</label>
+          <input id="salt" type="text" placeholder="Optional salt" value="01" />
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+      <div class="row">
+        <button id="genNonce">Generate nonce</button>
+        <button id="encrypt">Encrypt</button>
+        <button id="decrypt" class="ghost">Decrypt</button>
+        <div style="flex:1"></div>
+        <div style="min-width:240px">
+          <label>Nonce (hex)</label>
+          <input id="nonce" type="text" placeholder="nonce (hex)" />
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
       <div>
-        <h1>JSON Rarity Editor</h1>
-        <div class="small muted">Mainly created to edit the affixes and suffixes.</div>
+        <label>Ciphertext</label>
+        <div id="ciphertext" class="output"></div>
       </div>
 
+      <div style="height:8px"></div>
       <div class="controls">
-        <label class="btn file-label">
-          Upload JSON
-          <input id="fileInput" type="file" accept="application/json" style="display:none">
-        </label>
-        <button id="loadSampleBtn" class="btn">Load sample JSON</button>
-        <button id="newBtn" class="btn">New Template</button>
-        <input id="filename" type="text" class="btn" style="width:160px" value="items.json">
-        <button id="downloadBtn" class="btn primary">Download JSON</button>
-        <select id="themeSelect" class="btn">
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="contrast">High Contrast</option>
-        </select>
+        <button id="copyCipher">Copy ciphertext</button>
+        <button id="copyPlain" class="ghost">Copy plaintext</button>
+        <button id="download" class="ghost">Download .html (this page)</button>
+        <div style="flex:1"></div>
+        <div class="muted">Tip: the same passphrase+salt+nonce must be used for decrypt.</div>
       </div>
-    </div>
+    </section>
 
-    <div class="grid">
-      <aside class="card">
-        <h2>Rarities</h2>
-        <div id="rarities" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
-        <div style="margin-top:12px">
-          <button id="addItemToRarity" class="btn primary" style="width:100%">Add item to selected rarity</button>
-        </div>
-      </aside>
-
-      <section class="card">
-        <h2>Items</h2>
-        <div class="items-list" id="itemsList"></div>
-      </section>
-
-      <main class="card">
-        <h2>Editor</h2>
-        <div id="editorArea" class="col">
-          <div class="muted">Select an item to edit or create a new one.</div>
-        </div>
-
-        <div style="margin-top:12px">
-          <h3 class="small">Preview JSON</h3>
-          <pre id="preview"></pre>
-        </div>
-      </main>
-    </div>
-
+    <section class="card">
+      <h3 style="margin-top:0">About this demo</h3>
+      <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt/nonce.</p>
+      <div class="footer">⚠️ Not audited for production use. Use only for learning and experimentation.</div>
+    </section>
   </div>
 
-  <script>
-    const ATTRIBUTE_LIST = [
-      'precision','APCostReduction','weight','pierce','blunt','loot','HPGain','slash','range','damage',
-      'armorBlunt','armorReduction','selfDamage','constantDamage','instantKillChance','missChance','gold',
-      'damageBlocked','selfHitChance','HPDrain'
-    ];
+<script>
+// LNZT cipher — JavaScript/Browser port
+// Alphabet A-Z then 0-9
+const ALPHABET = Array.from({length:26}, (_,i)=>String.fromCharCode(65+i)).concat(Array.from({length:10},(_,i)=>String(i)));
+const M = ALPHABET.length; // 36
 
-    const VALID_RARITIES = ['common','rare','epic','godly','magic','none'];
+const enc = new TextEncoder();
+const dec = new TextDecoder();
 
-    function makeEmptyTemplate(){ return VALID_RARITIES.reduce((acc, r)=>{ acc[r] = {}; return acc; }, {}); }
-    function deepClone(v){ return JSON.parse(JSON.stringify(v)); }
+async function sha256Bytes(input) {
+  // input: string or Uint8Array
+  const data = (typeof input === 'string') ? enc.encode(input) : input;
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return new Uint8Array(buf);
+}
 
-    let data = deepClone(makeEmptyTemplate());
-    let selectedRarity = VALID_RARITIES[0];
-    let selectedItem = null;
+function toHex(bytes) {
+  return Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
-    const raritiesEl = document.getElementById('rarities');
-    const itemsListEl = document.getElementById('itemsList');
-    const editorArea = document.getElementById('editorArea');
-    const previewEl = document.getElementById('preview');
-    const fileInput = document.getElementById('fileInput');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const newBtn = document.getElementById('newBtn');
-    const addItemBtn = document.getElementById('addItemToRarity');
-    const filenameInput = document.getElementById('filename');
-    const loadSampleBtn = document.getElementById('loadSampleBtn');
-    const themeSelect = document.getElementById('themeSelect');
+function hexToBytes(hex) {
+  if (!hex) return new Uint8Array();
+  const out = new Uint8Array(hex.length/2);
+  for (let i=0;i<out.length;i++) out[i]=parseInt(hex.substr(i*2,2),16);
+  return out;
+}
 
-    function normalizeImported(parsed){
-      if (!parsed || typeof parsed !== 'object') return deepClone(makeEmptyTemplate());
-      if (parsed.rarity && typeof parsed.rarity === 'object') parsed = parsed.rarity;
-      const result = deepClone(makeEmptyTemplate());
-      VALID_RARITIES.forEach(r => { if (parsed[r] && typeof parsed[r] === 'object') result[r] = deepClone(parsed[r]); });
-      VALID_RARITIES.forEach(r => {
-        const items = result[r];
-        Object.keys(items).forEach(name => {
-          let item = items[name];
-          if (!Array.isArray(item) && typeof item === 'object') { item = ['', item]; }
-          if (Array.isArray(item)) {
-            if (item.length === 1) item.push({});
-            if (item[1] && typeof item[1].stat === 'object') item[1] = deepClone(item[1].stat);
-          }
-          items[name] = item;
-        });
-      });
-      return result;
+async function deriveSeedBytes(passphrase, salt) {
+  return await sha256Bytes(passphrase + '::' + (salt||""));
+}
+
+async function seededShuffle(items, seedBytes) {
+  // Fisher-Yates using deterministic SHA256 churn
+  const out = items.slice();
+  let idx = 0;
+  for (let i = out.length - 1; i > 0; --i) {
+    const payload = new Uint8Array(seedBytes.length + 1);
+    payload.set(seedBytes, 0);
+    payload[seedBytes.length] = idx & 0xFF;
+    const chunk = await sha256Bytes(payload);
+    // use first 8 bytes as big integer
+    let val = 0n;
+    for (let k=0;k<8 && k<chunk.length;k++) {
+      val = (val << 8n) + BigInt(chunk[k]);
     }
+    const j = Number(val % BigInt(i+1));
+    const tmp = out[i]; out[i] = out[j]; out[j] = tmp;
+    idx += 1;
+  }
+  return out;
+}
 
-    function getStatType(statObj){
-      if (!statObj) return 'fixed';
-      if (statObj.prc !== undefined && statObj.prc !== null) return 'prc';
-      if (statObj.rprc && (Number.isFinite(statObj.rprc.min) || Number.isFinite(statObj.rprc.max))) return 'rprc';
-      return 'fixed';
+async function deriveKeystream(passphrase, nonce, length) {
+  const out = [];
+  let counter = 0;
+  while (out.length < length) {
+    const block = await sha256Bytes(passphrase + '::' + nonce + '::' + counter);
+    for (let b of block) {
+      out.push(b % M);
+      if (out.length >= length) break;
     }
+    counter += 1;
+  }
+  return out;
+}
 
-    function parseNullableNumber(str){ if (str === null || str === undefined || str === '') return null; const n = Number(str); return Number.isFinite(n) ? n : null; }
+function indexOfSym(ch) { return ALPHABET.indexOf(ch); }
+function symOf(idx) { return ALPHABET[idx % M]; }
 
-    function renderRarities(){ raritiesEl.innerHTML = ''; VALID_RARITIES.forEach(r => { const btn = document.createElement('button'); btn.className = 'rarity-btn' + (r === selectedRarity ? ' active' : ''); btn.textContent = r; btn.onclick = () => { selectedRarity = r; selectedItem = null; render(); }; raritiesEl.appendChild(btn); }); }
+async function encryptLNZT(plaintext, passphrase, salt='', nonceHex=null) {
+  // normalize
+  let message = (plaintext || '') .toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (!nonceHex) {
+    const r = new Uint8Array(8);
+    crypto.getRandomValues(r);
+    nonceHex = toHex(r);
+  }
+  const baseSeed = await deriveSeedBytes(passphrase, salt);
+  const basePerm = await seededShuffle([...Array(M).keys()], baseSeed);
+  const substituteMap = Array.from({length:M}, (_,i)=>basePerm[i]);
+  // substitution
+  let indices = Array.from(message).map(ch=>substituteMap[indexOfSym(ch)]);
+  // additive keystream
+  const ks = await deriveKeystream(passphrase, nonceHex, indices.length);
+  indices = indices.map((v,i)=> (v + ks[i]) % M);
+  // nibble mixing (base-6)
+  const nibbleKs = await deriveKeystream(passphrase+':nibble', nonceHex, indices.length*2);
+  const newIndices = [];
+  for (let i=0;i<indices.length;i++) {
+    let d0 = Math.floor(indices[i]/6);
+    let d1 = indices[i] % 6;
+    d0 = (d0 + (nibbleKs[2*i] % 6)) % 6;
+    d1 = (d1 + (nibbleKs[2*i+1] % 6)) % 6;
+    const h = await sha256Bytes(passphrase + '::swap' + '::' + nonceHex + '::' + i);
+    if (h[0] & 1) { [d0,d1] = [d1,d0]; }
+    newIndices.push(d0*6 + d1);
+  }
+  indices = newIndices;
+  // block transposition per-block-length
+  const blockSize = (baseSeed[0] % 5) + 4; // 4..8
+  const outIndices = [];
+  for (let bstart=0;bstart<indices.length;bstart+=blockSize) {
+    const block = indices.slice(bstart, Math.min(indices.length, bstart+blockSize));
+    const L = block.length;
+    const permSeed = await deriveSeedBytes(passphrase, salt + '::perm::L' + L);
+    const perm = await seededShuffle([...Array(L).keys()], permSeed);
+    const transposed = Array.from({length:L}, (_,i)=>block[perm[i]]);
+    outIndices.push(...transposed);
+  }
+  // CBC-like diffusion
+  const final = outIndices.slice();
+  let prev = baseSeed[0] % M;
+  for (let i=0;i<final.length;i++) {
+    final[i] = (final[i] + prev) % M;
+    prev = final[i];
+  }
+  const ciphertext = final.map(symOf).join('');
+  return {ciphertext, nonce: nonceHex};
+}
 
-    function renderItems(){
-      itemsListEl.innerHTML = '';
-      const items = data[selectedRarity] || {};
-      const names = Object.keys(items);
-      if (names.length === 0) { const d = document.createElement('div'); d.className = 'small muted'; d.textContent = 'No items yet'; itemsListEl.appendChild(d); return; }
-      names.forEach(name => {
-        const row = document.createElement('div'); row.className = 'item-row';
-        const left = document.createElement('div'); left.style.flex = '1';
-        const title = document.createElement('div'); title.textContent = name; title.style.fontWeight = '600';
-        const desc = document.createElement('div'); desc.className = 'small muted'; desc.style.maxWidth = '180px'; desc.style.overflow = 'hidden'; desc.style.textOverflow = 'ellipsis'; desc.textContent = (items[name] && items[name][0]) || '';
-        left.appendChild(title); left.appendChild(desc); row.appendChild(left);
-        const actions = document.createElement('div'); actions.style.display = 'flex'; actions.style.gap = '6px';
-        const selectBtn = document.createElement('button'); selectBtn.className = 'btn'; selectBtn.textContent = 'Edit'; selectBtn.onclick = () => { selectedItem = name; render(); };
-        const renameBtn = document.createElement('button'); renameBtn.className = 'btn'; renameBtn.textContent = 'Rename'; renameBtn.onclick = () => { const nn = prompt('Rename item', name); if (nn && nn !== name) renameItem(name, nn); };
-        const delBtn = document.createElement('button'); delBtn.className = 'btn danger'; delBtn.textContent = 'Delete'; delBtn.onclick = () => { if (confirm(`Delete item "${name}" from ${selectedRarity}?`)) deleteItem(name); };
-        actions.appendChild(selectBtn); actions.appendChild(renameBtn); actions.appendChild(delBtn); row.appendChild(actions); itemsListEl.appendChild(row);
-      });
-    }
+async function decryptLNZT(ciphertext, passphrase, salt, nonceHex) {
+  let message = (ciphertext || '').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const indices = Array.from(message).map(ch=>indexOfSym(ch));
+  const baseSeed = await deriveSeedBytes(passphrase, salt);
+  // reverse CBC-like diffusion
+  const recovered = indices.slice();
+  let prev = baseSeed[0] % M;
+  for (let i=0;i<recovered.length;i++) {
+    const c = recovered[i];
+    const orig = (c - prev + M) % M;
+    recovered[i] = orig;
+    prev = c; // IMPORTANT: prev becomes cipher value as in encryption reverse
+  }
+  // reverse block transposition
+  const blockSize = (baseSeed[0] % 5) + 4;
+  let outIndices = [];
+  for (let bstart=0;bstart<recovered.length;bstart+=blockSize) {
+    const block = recovered.slice(bstart, Math.min(recovered.length, bstart+blockSize));
+    const L = block.length;
+    const permSeed = await deriveSeedBytes(passphrase, salt + '::perm::L' + L);
+    const perm = await seededShuffle([...Array(L).keys()], permSeed);
+    const inv = Array(L).fill(0);
+    for (let i=0;i<L;i++) inv[perm[i]] = i;
+    const untrans = Array.from({length:L}, (_,i)=>block[inv[i]]);
+    outIndices.push(...untrans);
+  }
+  // reverse nibble mixing
+  const nibbleKs = await deriveKeystream(passphrase+':nibble', nonceHex, outIndices.length*2);
+  const afterNibble = [];
+  for (let i=0;i<outIndices.length;i++) {
+    let d0 = Math.floor(outIndices[i]/6);
+    let d1 = outIndices[i] % 6;
+    const h = await sha256Bytes(passphrase + '::swap' + '::' + nonceHex + '::' + i);
+    if (h[0] & 1) { [d0,d1] = [d1,d0]; }
+    d0 = (d0 - (nibbleKs[2*i] % 6) + 6) % 6;
+    d1 = (d1 - (nibbleKs[2*i+1] % 6) + 6) % 6;
+    afterNibble.push(d0*6 + d1);
+  }
+  // reverse additive keystream
+  const ks = await deriveKeystream(passphrase, nonceHex, afterNibble.length);
+  const afterKS = afterNibble.map((v,i)=> (v - ks[i] + M) % M);
+  // reverse substitution
+  const basePerm = await seededShuffle([...Array(M).keys()], baseSeed);
+  const inverseSub = Array(M).fill(0);
+  for (let i=0;i<M;i++) inverseSub[basePerm[i]] = i;
+  const recoveredPlainIndices = afterKS.map(i=>inverseSub[i]);
+  const plaintext = recoveredPlainIndices.map(symOf).join('');
+  return plaintext;
+}
 
-    function renderEditor(){
-      editorArea.innerHTML = '';
-      if (!selectedItem) { const info = document.createElement('div'); info.className = 'muted'; info.textContent = 'Select or create an item to edit.'; editorArea.appendChild(info); return; }
-      const items = data[selectedRarity] || {};
-      const item = items[selectedItem] || ['', {}];
+// UI wiring
+const $ = id => document.getElementById(id);
+$('genNonce').addEventListener('click', ()=>{
+  const r = new Uint8Array(8); crypto.getRandomValues(r); $('nonce').value = toHex(r);
+});
 
-      const nameLabel = document.createElement('label'); nameLabel.textContent = 'Name';
-      const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.value = selectedItem; nameInput.onchange = () => { const v = nameInput.value.trim(); if (v && v !== selectedItem) renameItem(selectedItem, v); };
-      const descLabel = document.createElement('label'); descLabel.textContent = 'Description';
-      const descInput = document.createElement('textarea'); descInput.rows = 3; descInput.value = item[0] || '';
-      descInput.onchange = () => { updateItemDescription(selectedItem, descInput.value); };
+$('encrypt').addEventListener('click', async ()=>{
+  const pt = $('plaintext').value;
+  const pw = $('passphrase').value;
+  const salt = $('salt').value || '';
+  let nonce = $('nonce').value || null;
+  try {
+    const {ciphertext, nonce: used} = await encryptLNZT(pt, pw, salt, nonce);
+    $('ciphertext').textContent = ciphertext;
+    $('nonce').value = used;
+  } catch (err) {
+    $('ciphertext').textContent = 'Error: '+err.message;
+  }
+});
 
-      editorArea.appendChild(nameLabel); editorArea.appendChild(nameInput);
-      editorArea.appendChild(descLabel); editorArea.appendChild(descInput);
+$('decrypt').addEventListener('click', async ()=>{
+  const ct = $('ciphertext').textContent || $('plaintext').value;
+  const pw = $('passphrase').value;
+  const salt = $('salt').value || '';
+  const nonce = $('nonce').value || '';
+  try {
+    const pt = await decryptLNZT(ct, pw, salt, nonce);
+    // show result into plaintext area for convenience
+    $('plaintext').value = pt;
+  } catch (err) {
+    alert('Decryption error: '+err.message);
+  }
+});
 
-      const stats = (Array.isArray(item) ? (item[1] || {}) : {});
-      const statsWrapper = document.createElement('div');
-      const statsHeader = document.createElement('div'); statsHeader.className = 'flex'; statsHeader.style.justifyContent = 'space-between';
-      const sh = document.createElement('div'); sh.textContent = 'Stats'; sh.style.fontWeight = '600';
-      const addStatBtn = document.createElement('button'); addStatBtn.className = 'btn primary'; addStatBtn.textContent = 'Add stat'; addStatBtn.onclick = () => { addStat(selectedItem); };
-      statsHeader.appendChild(sh); statsHeader.appendChild(addStatBtn); statsWrapper.appendChild(statsHeader);
+$('copyCipher').addEventListener('click', ()=>{
+  const text = $('ciphertext').textContent || '';
+  navigator.clipboard.writeText(text);
+});
+$('copyPlain').addEventListener('click', ()=>{
+  navigator.clipboard.writeText($('plaintext').value);
+});
+$('download').addEventListener('click', ()=>{
+  const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'lnzt_cipher_demo.html'; a.click(); URL.revokeObjectURL(url);
+});
 
-      if (Object.keys(stats).length === 0) { const d = document.createElement('div'); d.className = 'small muted'; d.textContent = 'No stats yet'; statsWrapper.appendChild(d); }
-
-      Object.entries(stats).forEach(([attr, statObj]) => {
-        const card = document.createElement('div'); card.style.border = '1px solid var(--border)'; card.style.padding = '8px'; card.style.borderRadius = '8px'; card.style.marginTop = '8px';
-        const row = document.createElement('div'); row.className = 'grid'; row.style.gridTemplateColumns = '220px 260px 180px'; row.style.gap = '8px';
-
-        const attrDiv = document.createElement('div');
-        const attrLbl = document.createElement('div'); attrLbl.className = 'small muted'; attrLbl.textContent = 'Attribute';
-        const attrSelect = document.createElement('select');
-        ATTRIBUTE_LIST.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; attrSelect.appendChild(o); });
-        const customOpt = document.createElement('option'); customOpt.value = '__custom__'; customOpt.textContent = 'Custom...'; attrSelect.appendChild(customOpt);
-        if (!ATTRIBUTE_LIST.includes(attr)) { attrSelect.value = '__custom__'; } else { attrSelect.value = attr; }
-        const customInput = document.createElement('input'); customInput.type = 'text'; customInput.placeholder = 'Custom attribute name'; customInput.style.display = ATTRIBUTE_LIST.includes(attr) ? 'none' : 'block'; customInput.value = ATTRIBUTE_LIST.includes(attr) ? '' : attr;
-        attrSelect.onchange = () => { if (attrSelect.value === '__custom__') { customInput.style.display = 'block'; customInput.focus(); } else { customInput.style.display = 'none'; renameStat(attr, attrSelect.value); } };
-        customInput.onchange = () => { const nv = customInput.value.trim(); if (nv) renameStat(attr, nv); else { customInput.value = attr; } };
-        attrDiv.appendChild(attrLbl); attrDiv.appendChild(attrSelect); attrDiv.appendChild(customInput); row.appendChild(attrDiv);
-
-        const center = document.createElement('div'); center.className = 'col';
-        const typeLbl = document.createElement('div'); typeLbl.className = 'small muted'; typeLbl.textContent = 'Type';
-        const typeSelect = document.createElement('select');
-        ['fixed','prc','rprc'].forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;typeSelect.appendChild(o);});
-        typeSelect.value = getStatType(statObj);
-        typeSelect.onchange = () => { setStatType(attr, typeSelect.value); render(); };
-        center.appendChild(typeLbl);
-        center.appendChild(typeSelect);
-        row.appendChild(attrDiv);
-        row.appendChild(center);
-        // make sure the selector is visible and sized
-        try { typeSelect.style.display = 'block'; typeSelect.style.width = '120px'; typeSelect.style.minWidth = '80px'; typeSelect.style.marginBottom = '6px'; } catch(e) {}
-        const currentType = getStatType(statObj);
-        typeSelect.value = currentType;
-        typeSelect.onchange = () => { setStatType(attr, typeSelect.value); render(); };
-
-        const fixedLbl = document.createElement('div'); fixedLbl.className = 'small muted'; fixedLbl.textContent = 'Fixed';
-        const fixedInput = document.createElement('input'); fixedInput.type = 'number'; fixedInput.step = 'any'; fixedInput.value = (statObj && statObj.fixed) != null ? statObj.fixed : '';
-        fixedInput.onchange = () => { setStatField(attr, 'fixed', fixedInput.value); };
-
-        const prcLbl = document.createElement('div'); prcLbl.className = 'small muted'; prcLbl.textContent = 'prc (optional)';
-        const prcInput = document.createElement('input'); prcInput.type = 'number'; prcInput.step = 'any'; prcInput.value = (statObj && statObj.prc !== undefined && statObj.prc !== null) ? statObj.prc : '';
-        prcInput.onchange = () => { setStatField(attr, 'prc', prcInput.value); render(); };
-
-        const stackLbl = document.createElement('div'); stackLbl.className = 'small muted'; stackLbl.textContent = 'stack (optional)';
-        const stackInput = document.createElement('input'); stackInput.type = 'number'; stackInput.step = '1'; stackInput.value = (statObj && statObj.stack !== undefined && statObj.stack !== null) ? statObj.stack : '';
-        stackInput.onchange = () => { setStatField(attr, 'stack', stackInput.value); renderPreview(); };
-
-        center.appendChild(typeLbl); center.appendChild(typeSelect);
-        center.appendChild(fixedLbl); center.appendChild(fixedInput);
-        center.appendChild(prcLbl); center.appendChild(prcInput);
-        center.appendChild(stackLbl); center.appendChild(stackInput);
-
-        const right = document.createElement('div'); right.className = 'col';
-        const rprcLbl = document.createElement('div'); rprcLbl.className = 'small muted'; rprcLbl.textContent = 'rprc (min / max)';
-        const rprcMin = document.createElement('input'); rprcMin.type = 'number'; rprcMin.step = 'any'; rprcMin.placeholder = 'min';
-        const rprcMax = document.createElement('input'); rprcMax.type = 'number'; rprcMax.step = 'any'; rprcMax.placeholder = 'max';
-        rprcMin.value = statObj.rprc && statObj.rprc.min!=null?statObj.rprc.min:'';
-        rprcMax.value = statObj.rprc && statObj.rprc.max!=null?statObj.rprc.max:'';
-        rprcMin.onchange = () => { setRprcField(attr,'min',rprcMin.value); };
-        rprcMax.onchange = () => { setRprcField(attr,'max',rprcMax.value); };
-        right.appendChild(rprcLbl);
-        right.appendChild(rprcMin);
-        right.appendChild(rprcMax);
-        
-        
-        row.appendChild(right);
-        card.appendChild(row);
-        statsWrapper.appendChild(card);
-        });
-      editorArea.appendChild(statsWrapper);
-      const hint = document.createElement('div'); hint.className = 'small muted'; hint.textContent = 'Changes are applied live. Use Download JSON to save to a file.'; editorArea.appendChild(hint);
-    }
-
-    function applyTheme(name){ if (name === 'system'){document.documentElement.removeAttribute('data-theme');} else {document.documentElement.setAttribute('data-theme', name);} localStorage.setItem('app-theme', name);}
-    const savedTheme = localStorage.getItem('app-theme') || 'system';
-    themeSelect.value = savedTheme;
-    applyTheme(savedTheme);
-    function createItem(){ const items = data[selectedRarity]; let base = 'New Item'; let i = 1; let name = base; while (items[name]) { name = base + ' ' + (i++); } items[name] = ['description...', {}]; selectedItem = name; render(); }
-    function deleteItem(name){ delete data[selectedRarity][name]; selectedItem = null; render(); }
-    function renameItem(oldName, newName){ if (!newName) return; if (data[selectedRarity][newName]) { alert('Name already exists'); return; } data[selectedRarity][newName] = data[selectedRarity][oldName]; delete data[selectedRarity][oldName]; selectedItem = newName; render(); }
-    function updateItemDescription(name, desc){ if (!data[selectedRarity][name]) return; data[selectedRarity][name][0] = desc; renderPreview(); }
-
-    function addStat(itemName){ const items = data[selectedRarity]; const it = items[itemName]; if (!it[1]) it[1] = {}; const stats = it[1]; let pick = ATTRIBUTE_LIST.find(a => !Object.prototype.hasOwnProperty.call(stats, a)); if (!pick) { let i = 1; pick = 'attribute_' + i; while (stats[pick]) { i++; pick = 'attribute_' + i; } } stats[pick] = { fixed: 0 }; render(); }
-    function deleteStat(attr){ const stats = data[selectedRarity][selectedItem][1]; delete stats[attr]; render(); }
-    function renameStat(oldAttr, newAttr){ if (!newAttr) return; const stats = data[selectedRarity][selectedItem][1]; if (oldAttr === newAttr) return; if (stats[newAttr]) { if (!confirm(`Attribute "${newAttr}" already exists. Overwrite?`)) return; } stats[newAttr] = stats[oldAttr]; delete stats[oldAttr]; render(); }
-
-    function setStatType(attr, type){ const stat = data[selectedRarity][selectedItem][1][attr]; if (!stat) return; if (type === 'fixed') { delete stat.prc; if (!(stat.rprc && (Number.isFinite(stat.rprc.min) || Number.isFinite(stat.rprc.max)))) delete stat.rprc; } else if (type === 'prc') { stat.prc = (stat.prc != null) ? stat.prc : 0; stat.fixed = Number((stat.prc / 10).toFixed(1)); if (!(stat.rprc && (Number.isFinite(stat.rprc.min) || Number.isFinite(stat.rprc.max)))) delete stat.rprc; } else if (type === 'rprc') { stat.rprc = stat.rprc || { min: null, max: null }; stat.fixed = 0; delete stat.prc; } renderPreview(); }
-
-    function setStatField(attr, field, value){ const stat = data[selectedRarity][selectedItem][1][attr]; if (!stat) return; if (field === 'fixed') { const n = parseNullableNumber(value); if (n == null) delete stat.fixed; else stat.fixed = n; } else if (field === 'prc') { const n = parseNullableNumber(value); if (n == null) delete stat.prc; else { stat.prc = n; stat.fixed = Number((stat.prc / 10).toFixed(1)); } if (!(stat.rprc && (Number.isFinite(stat.rprc.min) || Number.isFinite(stat.rprc.max)))) delete stat.rprc; } else if (field === 'stack') { const n = parseNullableNumber(value); if (n == null) delete stat.stack; else stat.stack = Math.floor(n); } else if (field === 'rprc_min') { const n = parseNullableNumber(value); stat.rprc = stat.rprc || { min: null, max: null }; stat.rprc.min = n; if (!(Number.isFinite(stat.rprc.min) || Number.isFinite(stat.rprc.max))) delete stat.rprc; else { stat.fixed = 0; delete stat.prc; } } else if (field === 'rprc_max') { const n = parseNullableNumber(value); stat.rprc = stat.rprc || { min: null, max: null }; stat.rprc.max = n; if (!(Number.isFinite(stat.rprc.min) || Number.isFinite(stat.rprc.max))) delete stat.rprc; else { stat.fixed = 0; delete stat.prc; } } renderPreview(); }
-
-    fileInput.addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const reader = new FileReader(); reader.onload = ev => { try { let parsed = JSON.parse(ev.target.result); parsed = normalizeImported(parsed); data = deepClone(parsed); selectedRarity = VALID_RARITIES[0]; selectedItem = null; filenameInput.value = f.name.replace(/\.[^.]+$/,'') + '.json'; render(); } catch (err) { alert('Invalid JSON: ' + err.message); } }; reader.readAsText(f); e.target.value = null; });
-
-    downloadBtn.addEventListener('click', () => { const json = JSON.stringify(data, null, 2); const blob = new Blob([json], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filenameInput.value || 'items.json'; a.click(); URL.revokeObjectURL(url); });
-
-    newBtn.addEventListener('click', () => { data = deepClone(makeEmptyTemplate()); selectedRarity = VALID_RARITIES[0]; selectedItem = null; render(); });
-    addItemBtn.addEventListener('click', () => { createItem(); });
-    themeSelect.addEventListener('change', () => { applyTheme(themeSelect.value); });
-
-
-    loadSampleBtn.addEventListener('click', () => {
-      const sample = {
-        "common":{
-          "Rusty Sword":["A dull old blade", {"attack": {"fixed":1}}],
-          "Old Shield":["Wooden shield", {"defense": {"fixed":2, "stack":2}}]
-        },
-        "epic":{
-          "Flamebrand":["Burns enemies", {"damage": {"fixed":10, "prc":50}}]
-        }
-      };
-      data = deepClone(normalizeImported(sample)); selectedRarity = 'common'; selectedItem = null; render();
-    });
-
-    function renderPreview(){ previewEl.textContent = JSON.stringify(data, null, 2); }
-    function render(){ renderRarities(); renderItems(); renderEditor(); renderPreview(); }
-    render();
-  </script>
+</script>
 </body>
 </html>
