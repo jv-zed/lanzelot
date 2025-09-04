@@ -1,9 +1,8 @@
-<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LNZT (Lanzelot) Cipher — Web Demo (Passphrase-only, 1→!)</title>
+  <title>Lanzelot Cipher — Web Demo</title>
   <style>
     :root{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;--card:#fff;--bg:#f3f6fb}
     body{margin:0;background:var(--bg);padding:28px}
@@ -27,8 +26,8 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>LNZT (Lanzelot) Cipher — Web Demo (passphrase-only)</h1>
-      <div class="muted">(A multi-layer experimental cipher — for learning/demo)</div>
+      <h1>Lanzelot Cipher — Web Demo</h1>
+      <div class="muted">A multi-layer experimental cipher</div>
     </header>
 
     <section class="card">
@@ -73,7 +72,7 @@
     <section class="card">
       <h3 style="margin-top:0">About this demo</h3>
       <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt (no per-message nonce). All displayed output replaces the character "1" with "!"; when decrypting the page will accept either "1" or "!" as input.</p>
-      <div class="footer">⚠️ Not audited for production use. Removing the nonce reduces semantic security — identical messages encrypted with the same passphrase/salt will produce identical ciphertexts. Use only for learning and experimentation.</div>
+      <div class="footer">⚠️ Not audited for production use. Use only for learning and experimentation.</div>
     </section>
   </div>
 
