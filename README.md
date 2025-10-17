@@ -31,7 +31,7 @@
     </header>
 
     <section class="card">
-      <label>Plaintext (letters & numbers only will be used; all "1" are shown as "!")</label>
+      <label>Plaintext (letters & numbers only will be used)</label>
       <textarea id="plaintext" rows="4" placeholder="Type message, e.g. HELLO123">HELLO123</textarea>
 
       <div style="height:12px"></div>
@@ -55,7 +55,7 @@
 
       <div style="height:12px"></div>
       <div>
-        <label>Ciphertext (all "1" displayed as "!")</label>
+        <label>Ciphertext</label>
         <div id="ciphertext" class="output"></div>
       </div>
 
