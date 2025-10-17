@@ -38,11 +38,11 @@
       <div class="grid">
         <div>
           <label>Passphrase</label>
-          <input id="passphrase" type="password" placeholder="Secret passphrase" value="Lanzelot42" />
+          <input id="passphrase" type="password" placeholder="Secret passphrase" value="440" />
         </div>
         <div>
           <label>Salt (optional)</label>
-          <input id="salt" type="text" placeholder="Optional salt" value="01" />
+          <input id="salt" type="password" placeholder="Optional salt" value="LNZT" />
         </div>
       </div>
 
