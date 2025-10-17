@@ -2,7 +2,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lanzelot Cipher — Web Demo</title>
+  <title>Lanzelot Cipher - Web Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <style>
     :root{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;--card:#fff;--bg:#f3f6fb}
     body{margin:0;background:var(--bg);padding:28px}
@@ -26,7 +27,7 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Lanzelot Cipher — Web Demo</h1>
+      <h1>Lanzelot Cipher - Web Demo</h1>
       <div class="muted">A multi-layer experimental cipher</div>
     </header>
 
@@ -38,11 +39,17 @@
       <div class="grid">
         <div>
           <label>Passphrase</label>
-          <input id="passphrase" type="password" placeholder="Secret passphrase" value="440" />
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="passphrase" type="password" placeholder="Secret passphrase" value="440" />
+            <button id="togglePass" class="ghost material-symbols-outlined" aria-pressed="false" title="Show passphrase" style="padding:6px 8px;">visibility</button>
+          </div>
         </div>
         <div>
           <label>Salt (optional)</label>
-          <input id="salt" type="password" placeholder="Optional salt" value="LNZT" />
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="salt" type="password" placeholder="Optional salt" value="LNZT" />
+            <button id="toggleSalt" class="ghost material-symbols-outlined" aria-pressed="false" title="Show salt" style="padding:6px 8px;">visibility</button>
+          </div>
         </div>
       </div>
 
@@ -65,24 +72,21 @@
         <button id="copyPlain" class="ghost">Copy plaintext</button>
         <button id="download" class="ghost">Download .html (this page)</button>
         <div style="flex:1"></div>
-        <div class="muted">Tip: this demo displays "!" instead of "1". Decrypt accepts either "1" or "!" in the ciphertext input.</div>
+        <div class="muted">Tip: this demo displays. Decrypt accepts either in the ciphertext input.</div>
       </div>
     </section>
 
     <section class="card">
       <h3 style="margin-top:0">About this demo</h3>
-      <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt (no per-message nonce). All displayed output replaces the character "1" with "!"; when decrypting the page will accept either "1" or "!" as input.</p>
+      <p class="muted">This page implements the LNZT cipher (seeded substitution, additive keystream, nibble mixing, block transposition and CBC-like diffusion). It uses the browser's <code>crypto.subtle</code> SHA-256. Encryption and decryption are deterministic for the same passphrase/salt (no per-message nonce).</p>
       <div class="footer">⚠️ Not audited for production use. Use only for learning and experimentation.</div>
     </section>
   </div>
 
 <script>
-// LNZT cipher — JavaScript/Browser port (nonce removed; deterministic by passphrase+salt)
-// UI: replaces displayed '1' with '!'; decrypt accepts both '1' and '!'
 
-// Alphabet A-Z then 0-9
 const ALPHABET = Array.from({length:26}, (_,i)=>String.fromCharCode(65+i)).concat(Array.from({length:10},(_,i)=>String(i)));
-const M = ALPHABET.length; // 36
+const M = ALPHABET.length;
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -141,22 +145,18 @@ function displayReplaceOnes(s) {
   return s.replace(/1/g, '!');
 }
 function inputReplaceBang(s) {
-  // accepts ! as 1 for decryption input
   return s.replace(/!/g, '1');
 }
 
 async function encryptLNZT(plaintext, passphrase, salt='') {
   let message = (plaintext || '') .toUpperCase().replace(/[^A-Z0-9]/g,'');
-  const nonceHex = ''; // nonce removed — deterministic output based only on passphrase+salt
+  const nonceHex = '';
   const baseSeed = await deriveSeedBytes(passphrase, salt);
   const basePerm = await seededShuffle([...Array(M).keys()], baseSeed);
   const substituteMap = Array.from({length:M}, (_,i)=>basePerm[i]);
-  // substitution
   let indices = Array.from(message).map(ch=>substituteMap[indexOfSym(ch)]);
-  // additive keystream
   const ks = await deriveKeystream(passphrase, nonceHex, indices.length);
   indices = indices.map((v,i)=> (v + ks[i]) % M);
-  // nibble mixing (base-6)
   const nibbleKs = await deriveKeystream(passphrase+':nibble', nonceHex, indices.length*2);
   const newIndices = [];
   for (let i=0;i<indices.length;i++) {
@@ -169,8 +169,7 @@ async function encryptLNZT(plaintext, passphrase, salt='') {
     newIndices.push(d0*6 + d1);
   }
   indices = newIndices;
-  // block transposition per-block-length
-  const blockSize = (baseSeed[0] % 5) + 4; // 4..8
+  const blockSize = (baseSeed[0] % 5) + 4;
   const outIndices = [];
   for (let bstart=0;bstart<indices.length;bstart+=blockSize) {
     const block = indices.slice(bstart, Math.min(indices.length, bstart+blockSize));
@@ -180,7 +179,6 @@ async function encryptLNZT(plaintext, passphrase, salt='') {
     const transposed = Array.from({length:L}, (_,i)=>block[perm[i]]);
     outIndices.push(...transposed);
   }
-  // CBC-like diffusion
   const final = outIndices.slice();
   let prev = baseSeed[0] % M;
   for (let i=0;i<final.length;i++) {
@@ -193,13 +191,11 @@ async function encryptLNZT(plaintext, passphrase, salt='') {
 
 async function decryptLNZT(ciphertext, passphrase, salt) {
   let messageRaw = (ciphertext || '').toUpperCase();
-  // accept '!' as '1'
   messageRaw = inputReplaceBang(messageRaw);
   let message = messageRaw.replace(/[^A-Z0-9]/g,'');
   const nonceHex = '';
   const indices = Array.from(message).map(ch=>indexOfSym(ch));
   const baseSeed = await deriveSeedBytes(passphrase, salt);
-  // reverse CBC-like diffusion
   const recovered = indices.slice();
   let prev = baseSeed[0] % M;
   for (let i=0;i<recovered.length;i++) {
@@ -208,7 +204,6 @@ async function decryptLNZT(ciphertext, passphrase, salt) {
     recovered[i] = orig;
     prev = c;
   }
-  // reverse block transposition
   const blockSize = (baseSeed[0] % 5) + 4;
   let outIndices = [];
   for (let bstart=0;bstart<recovered.length;bstart+=blockSize) {
@@ -221,7 +216,6 @@ async function decryptLNZT(ciphertext, passphrase, salt) {
     const untrans = Array.from({length:L}, (_,i)=>block[inv[i]]);
     outIndices.push(...untrans);
   }
-  // reverse nibble mixing
   const nibbleKs = await deriveKeystream(passphrase+':nibble', nonceHex, outIndices.length*2);
   const afterNibble = [];
   for (let i=0;i<outIndices.length;i++) {
@@ -233,10 +227,8 @@ async function decryptLNZT(ciphertext, passphrase, salt) {
     d1 = (d1 - (nibbleKs[2*i+1] % 6) + 6) % 6;
     afterNibble.push(d0*6 + d1);
   }
-  // reverse additive keystream
   const ks = await deriveKeystream(passphrase, nonceHex, afterNibble.length);
   const afterKS = afterNibble.map((v,i)=> (v - ks[i] + M) % M);
-  // reverse substitution
   const basePerm = await seededShuffle([...Array(M).keys()], baseSeed);
   const inverseSub = Array(M).fill(0);
   for (let i=0;i<M;i++) inverseSub[basePerm[i]] = i;
@@ -245,7 +237,6 @@ async function decryptLNZT(ciphertext, passphrase, salt) {
   return plaintext;
 }
 
-// UI wiring
 const $ = id => document.getElementById(id);
 
 $('encrypt').addEventListener('click', async ()=>{
@@ -254,9 +245,7 @@ $('encrypt').addEventListener('click', async ()=>{
   const salt = $('salt').value || '';
   try {
     const {ciphertext} = await encryptLNZT(pt, pw, salt);
-    // display with 1 -> !
     $('ciphertext').textContent = displayReplaceOnes(ciphertext);
-    // also show plaintext area with replaced ones for visual consistency
     $('plaintext').value = displayReplaceOnes(pt);
   } catch (err) {
     $('ciphertext').textContent = 'Error: '+err.message;
@@ -265,12 +254,11 @@ $('encrypt').addEventListener('click', async ()=>{
 
 $('decrypt').addEventListener('click', async ()=>{
   const rawCt = $('ciphertext').textContent || '';
-  const ctForInput = inputReplaceBang(rawCt); // convert ! -> 1 for processing
+  const ctForInput = inputReplaceBang(rawCt);
   const pw = $('passphrase').value;
   const salt = $('salt').value || '';
   try {
     const pt = await decryptLNZT(ctForInput, pw, salt);
-    // display plaintext with 1 -> ! for UI
     $('plaintext').value = displayReplaceOnes(pt);
   } catch (err) {
     alert('Decryption error: '+err.message);
@@ -287,8 +275,43 @@ $('copyPlain').addEventListener('click', ()=>{
 $('download').addEventListener('click', ()=>{
   const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'lnzt_cipher_demo_passphrase_only_1to!.html'; a.click(); URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = url; a.download = 'lnzt_cipher_demo.html'; a.click(); URL.revokeObjectURL(url);
 });
+
+function setToggleState(button, input, visible) {
+  button.setAttribute('aria-pressed', visible ? 'true' : 'false');
+  button.title = visible ? ('Hide ' + (input.id === 'passphrase' ? 'passphrase' : 'salt')) : ('Show ' + (input.id === 'passphrase' ? 'passphrase' : 'salt'));
+  input.type = visible ? 'text' : 'password';
+}
+
+const togglePass = $('togglePass');
+const toggleSalt = $('toggleSalt');
+const passInput = $('passphrase');
+const saltInput = $('salt');
+
+if (togglePass && passInput) {
+  togglePass.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const visible = togglePass.getAttribute('aria-pressed') === 'true';
+    if (visible)
+      togglePass.textContent = 'visibility';
+    else
+        togglePass.textContent = 'visibility_off';
+    
+    setToggleState(togglePass, passInput, !visible);
+  });
+}
+if (toggleSalt && saltInput) {
+  toggleSalt.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const visible = toggleSalt.getAttribute('aria-pressed') === 'true';
+    if (visible)
+      toggleSalt.textContent = 'visibility';
+    else
+        toggleSalt.textContent = 'visibility_off';
+    setToggleState(toggleSalt, saltInput, !visible);
+  });
+}
 
 </script>
 </body>
